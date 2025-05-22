@@ -3,11 +3,13 @@ dj-database-url==2.3.0
 Django==5.2.1
 django-cors-headers==4.7.0
 djangorestframework==3.16.0
+djangorestframework-simplejwt==5.2.2
 gunicorn==23.0.0
 packaging==25.0
 psycopg2-binary==2.9.10
+PyJWT==2.10.1
+setuptools==80.8.0
 sqlparse==0.5.3
 typing_extensions==4.13.2
 tzdata==2025.2
 whitenoise==6.9.0
-djangorestframework-simplejwt==5.2.2

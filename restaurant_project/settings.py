@@ -104,7 +104,7 @@ import dj_database_url
 
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgresql://santodomingo_db_nng0_user:nwAJNoZAP3aAKEC4aNTCEU5l9WluZH22@dpg-d0n9aa6mcj7s73do8e00-a.oregon-postgres.render.com/santodomingo_db_nng0',
+        default='postgresql://santodomingo_db_v8d6_user:XtGTVawZRd5ydJlV3MGkbVwgUY4PS3Mq@dpg-d0nq6sbuibrs738sssvg-a.oregon-postgres.render.com/santodomingo_db_v8d6',
         conn_max_age=600,
         ssl_require=True
     )
