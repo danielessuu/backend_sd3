@@ -65,7 +65,6 @@ def create_order(request):
             return JsonResponse({'error': str(e)}, status=500)
     return JsonResponse({'error': 'Solo se permite POST'}, status=405)
 
-@require_GET
 def orders_with_items(request):
     if request.method == 'GET':
         orders = Order.objects.all().order_by('-id')
