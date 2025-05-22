@@ -1,0 +1,156 @@
+[
+  {
+    "model": "santodomingo.Dish",
+    "pk": 1,
+    "fields": {
+      "name": "Ensalada César",
+      "description": "Lechuga romana, parmesano, pollo a la parrilla, croutones y salsa César casera.",
+      "price": 12,
+      "image_url": "assets/Ensalada.png",
+      "category": "Entradas"
+    }
+  },
+  {
+    "model": "santodomingo.Dish",
+    "pk": 2,
+    "fields": {
+      "name": "Sushi Selection",
+      "description": "Nigiris de salmón y atún, rolls con aguacate y tempura, acompañados de salsa soya.",
+      "price": 30,
+      "image_url": "assets/sushi.png",
+      "category": "Entradas"
+    }
+  },
+  {
+    "model": "santodomingo.Dish",
+    "pk": 3,
+    "fields": {
+      "name": "Steak con Salsa",
+      "description": "Filete de res a la parrilla con salsa de vino tinto, acompañado de espárragos y papas baby.",
+      "price": 25,
+      "image_url": "assets/Carne.png",
+      "category": "Platos Fuertes"
+    }
+  },
+  {
+    "model": "santodomingo.Dish",
+    "pk": 4,
+    "fields": {
+      "name": "Salmón Glaseado",
+      "description": "Salmón premium con glaseado cítrico, espárragos y puré de papa con mantequilla.",
+      "price": 22,
+      "image_url": "assets/salmon.png",
+      "category": "Platos Fuertes"
+    }
+  },
+  {
+    "model": "santodomingo.Dish",
+    "pk": 5,
+    "fields": {
+      "name": "Fettuccine en Salsa de Trufa",
+      "description": "Pasta fresca bañada en salsa de trufa negra, con queso parmesano y champiñones.",
+      "price": 18,
+      "image_url": "assets/pasta.png",
+      "category": "Platos Fuertes"
+    }
+  },
+  {
+    "model": "santodomingo.Dish",
+    "pk": 6,
+    "fields": {
+      "name": "Pizza Caprese",
+      "description": "Pizza de masa fina con mozzarella fresca, tomate cherry, albahaca y balsámico.",
+      "price": 20,
+      "image_url": "assets/PIZZA.png",
+      "category": "Platos Fuertes"
+    }
+  },
+  {
+    "model": "santodomingo.Dish",
+    "pk": 7,
+    "fields": {
+      "name": "Hamburguesa",
+      "description": "Exquisita Hamburguesa con carne jugosa y vegetales frescos, acompañado de nuestra salsa Santo Domingo especial.",
+      "price": 20,
+      "image_url": "assets/Hamburguesa.png",
+      "category": "Platos Fuertes"
+    }
+  },
+  {
+    "model": "santodomingo.Dish",
+    "pk": 8,
+    "fields": {
+      "name": "Langosta",
+      "description": "Exquisita langosta entera a la parrilla, bañada en una mantequilla infusionada con ajo, finas hierbas y limón.",
+      "price": 60,
+      "image_url": "assets/langostino.png",
+      "category": "Platos Fuertes"
+    }
+  },
+  {
+    "model": "santodomingo.Dish",
+    "pk": 9,
+    "fields": {
+      "name": "Golden Martini",
+      "description": "Martini dorado servido en copa de cristal con un twist de cítricos.",
+      "price": 15,
+      "image_url": "assets/Martini.png",
+      "category": "Bebidas"
+    }
+  },
+  {
+    "model": "santodomingo.Dish",
+    "pk": 10,
+    "fields": {
+      "name": "Limonada de Limón",
+      "description": "Limonada con tintes tropicales y una burbujeante sensación en las papilas gustativas.",
+      "price": 8,
+      "image_url": "assets/limonada.png",
+      "category": "Bebidas"
+    }
+  },
+  {
+    "model": "santodomingo.Dish",
+    "pk": 11,
+    "fields": {
+      "name": "Mandarinada",
+      "description": "Limonada de mandarina refrescante con cubos de hielo.",
+      "price": 8,
+      "image_url": "assets/Sodificada real.png",
+      "category": "Bebidas"
+    }
+  },
+  {
+    "model": "santodomingo.Dish",
+    "pk": 12,
+    "fields": {
+      "name": "Sodificada de Limón",
+      "description": "Una bebida refrescante, elaborada con agua con gas, rodajas de limón y hielo.",
+      "price": 8,
+      "image_url": "assets/Sodificada Naranja.png",
+      "category": "Bebidas"
+    }
+  },
+  {
+    "model": "santodomingo.Dish",
+    "pk": 13,
+    "fields": {
+      "name": "Volcán de Chocolate",
+      "description": "Un irresistible pastel de chocolate caliente con un centro de chocolate fundido que se derrama al primer corte.",
+      "price": 10,
+      "image_url": "assets/Volcan.png",
+      "category": "Postres"
+    }
+  },
+  {
+    "model": "santodomingo.Dish",
+    "pk": 14,
+    "fields": {
+      "name": "Cheesecake de Fresa",
+      "description": "Cheesecake de fresa con glaseado brillante y menta fresca, con fondo gris claro.",
+      "price": 8,
+      "image_url": "assets/cheese cake.png",
+      "category": "Postres"
+    }
+  }
+]
