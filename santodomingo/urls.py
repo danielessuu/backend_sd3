@@ -4,7 +4,7 @@ from django.contrib.auth.views import LoginView, LogoutView
 
 urlpatterns = [
     path('dishes/', dish_list, name='dish_list'),
-    path('orders/', create_order, name='create_order'),
+    path('orders/', orders_list, name='orders_list'),
     path('staff/login/', LoginView.as_view(template_name='staff/login.html'), name='login'),
     path('staff/logout/', LogoutView.as_view(), name='logout'),
     path('staff/orders/', order_list_view, name='order_list'),
