@@ -65,12 +65,29 @@ def create_order(request):
             return JsonResponse({'error': str(e)}, status=500)
     return JsonResponse({'error': 'Solo se permite POST'}, status=405)
 
-def orders_list(request):
-    if request.method == "GET":
-        orders = Order.objects.all().values(
-            'id', 'customer_name', 'customer_phone', 'customer_address', 'status', 'created_at'
-        )
-        return JsonResponse(list(orders), safe=False)
+@require_GET
+def orders_with_items(request):
+    orders = Order.objects.all().order_by('-id')
+    data = []
+    for order in orders:
+        items = OrderItem.objects.filter(order=order).select_related('dish')
+        items_data = [{
+            'dish_id': item.dish.id,
+            'dish_name': item.dish.name,
+            'quantity': item.quantity,
+            'price': str(item.dish.price)
+        } for item in items]
+        data.append({
+            'order_id': order.id,
+            'customer_name': order.customer_name,
+            'customer_phone': order.customer_phone,
+            'customer_address': order.customer_address,
+            'status': order.status,
+            'created_at': order.created_at,
+            'total_price': str(order.total_price),  # <-- Aquí el total
+            'items': items_data
+        })
+    return JsonResponse(data, safe=False)
         
 # Vista para listar pedidos (con autenticación, para staff)
 @login_required
