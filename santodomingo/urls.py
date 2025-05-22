@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import dish_list, create_order, order_list_view, update_order_status_view
+from .views import dish_list, orders_list, order_list_view, update_order_status_view
 from django.contrib.auth.views import LoginView, LogoutView
 
 urlpatterns = [
