@@ -2,62 +2,67 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from .models import Dish, Order, OrderItem
+from .models import Plato, Pedido, ItemPedido, Cliente
 import json
 
 # API para listar platos (sin autenticación)
 @api_view(['GET'])
-def dish_list(request):
-    dishes = Dish.objects.all()
+def lista_platos(request):
+    platos = Plato.objects.all()
     data = [{
-        'id': dish.id,
-        'name': dish.name,
-        'category': dish.category,
-        'description': dish.description,
-        'price': str(dish.price),
-        'image_url': dish.image_url
-    } for dish in dishes]
+        'id': plato.id,
+        'nombre': plato.nombre,
+        'categoria': plato.categoria,
+        'descripcion': plato.descripcion,
+        'precio': str(plato.precio),
+        'url_imagen': plato.url_imagen
+    } for plato in platos]
     return JsonResponse(data, safe=False)
 
 # API para crear pedidos (sin autenticación)
 @csrf_exempt
 @api_view(['POST'])
-def create_order(request):
+def crear_pedido(request):
     try:
         data = json.loads(request.body)
-        customer_name = data.get('customer_name')
-        customer_phone = data.get('customer_phone')
-        customer_address = data.get('customer_address')
-        items = data.get('items')  # Lista de {'dish_id': id, 'quantity': qty}
+        nombre_cliente = data.get('nombre_cliente')
+        telefono_cliente = data.get('telefono_cliente')
+        direccion_cliente = data.get('direccion_cliente')
+        items = data.get('items')  # Lista de {'plato_id': id, 'cantidad': qty}
 
-        if not all([customer_name, customer_phone, customer_address, items]):
+        if not all([nombre_cliente, telefono_cliente, direccion_cliente, items]):
             return JsonResponse({'error': 'Faltan campos requeridos'}, status=400)
 
+        # Buscar o crear cliente
+        cliente, created = Cliente.objects.get_or_create(
+            nombre=nombre_cliente,
+            telefono=telefono_cliente,
+            direccion=direccion_cliente
+        )
+
         # Crear el pedido
-        order = Order.objects.create(
-            customer_name=customer_name,
-            customer_phone=customer_phone,
-            customer_address=customer_address,
-            total_price=0
+        pedido = Pedido.objects.create(
+            cliente=cliente,
+            precio_total=0
         )
 
         # Añadir ítems y calcular total
-        total_price = 0
+        precio_total = 0
         for item in items:
-            dish = Dish.objects.get(id=item['dish_id'])
-            quantity = item['quantity']
-            OrderItem.objects.create(
-                order=order,
-                dish=dish,
-                quantity=quantity
+            plato = Plato.objects.get(id=item['plato_id'])
+            cantidad = item['cantidad']
+            ItemPedido.objects.create(
+                pedido=pedido,
+                plato=plato,
+                cantidad=cantidad
             )
-            total_price += dish.price * quantity
+            precio_total += plato.precio * cantidad
 
-        order.total_price = total_price
-        order.save()
+        pedido.precio_total = precio_total
+        pedido.save()
 
-        return JsonResponse({'message': 'Pedido creado', 'order_id': order.id})
-    except Dish.DoesNotExist:
+        return JsonResponse({'mensaje': 'Pedido creado', 'pedido_id': pedido.id})
+    except Plato.DoesNotExist:
         return JsonResponse({'error': 'Plato no encontrado'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
@@ -65,33 +70,41 @@ def create_order(request):
 # API para listar y crear pedidos (sin autenticación)
 @csrf_exempt
 @api_view(['GET', 'POST'])
-def orders(request):
+def pedidos(request):
     if request.method == 'GET':
-        orders = Order.objects.all().order_by('-id')
-        status = request.GET.get('status')
-        customer_name = request.GET.get('customer_name')
-        if status:
-            orders = orders.filter(status=status)
-        if customer_name:
-            orders = orders.filter(customer_name__icontains=customer_name)
-        
+        pedidos = Pedido.objects.all().order_by('-id')
+        estado = request.GET.get('estado')
+        nombre_cliente = request.GET.get('nombre_cliente')
+        cliente_id = request.GET.get('cliente_id')
+
+        if estado:
+            pedidos = pedidos.filter(estado=estado)
+        if nombre_cliente:
+            pedidos = pedidos.filter(cliente__nombre__icontains=nombre_cliente)
+            if not pedidos.exists():
+                return JsonResponse({'error': f'No se encontraron pedidos para el cliente "{nombre_cliente}".'}, status=404)
+        if cliente_id:
+            pedidos = pedidos.filter(cliente__id=cliente_id)
+            if not pedidos.exists():
+                return JsonResponse({'error': f'No se encontraron pedidos para el cliente con ID {cliente_id}.'}, status=404)
+
         data = []
-        for order in orders:
-            items = OrderItem.objects.filter(order=order).select_related('dish')
+        for pedido in pedidos:
+            items = ItemPedido.objects.filter(pedido=pedido).select_related('plato')
             items_data = [{
-                'dish_id': item.dish.id,
-                'dish_name': item.dish.name,
-                'quantity': item.quantity,
-                'price': str(item.dish.price)
+                'plato_id': item.plato.id,
+                'plato_nombre': item.plato.nombre,
+                'cantidad': item.cantidad,
+                'precio': str(item.plato.precio)
             } for item in items]
             data.append({
-                'order_id': order.id,
-                'customer_name': order.customer_name,
-                'customer_phone': order.customer_phone,
-                'customer_address': order.customer_address,
-                'status': order.status,
-                'created_at': order.created_at.isoformat(),
-                'total_price': str(order.total_price),
+                'pedido_id': pedido.id,
+                'nombre_cliente': pedido.cliente.nombre,
+                'telefono_cliente': pedido.cliente.telefono,
+                'direccion_cliente': pedido.cliente.direccion,
+                'estado': pedido.estado,
+                'creado_en': pedido.creado_en.isoformat(),
+                'precio_total': str(pedido.precio_total),
                 'items': items_data
             })
         return JsonResponse(data, safe=False)
@@ -99,88 +112,93 @@ def orders(request):
     elif request.method == 'POST':
         try:
             data = json.loads(request.body)
-            customer_name = data.get('customer_name')
-            customer_phone = data.get('customer_phone')
-            customer_address = data.get('customer_address')
-            items = data.get('items')  # Lista de {'dish_id': id, 'quantity': qty}
+            nombre_cliente = data.get('nombre_cliente')
+            telefono_cliente = data.get('telefono_cliente')
+            direccion_cliente = data.get('direccion_cliente')
+            items = data.get('items')  # Lista de {'plato_id': id, 'cantidad': qty}
 
-            if not all([customer_name, customer_phone, customer_address, items]):
+            if not all([nombre_cliente, telefono_cliente, direccion_cliente, items]):
                 return JsonResponse({'error': 'Faltan campos requeridos'}, status=400)
 
+            # Buscar o crear cliente
+            cliente, created = Cliente.objects.get_or_create(
+                nombre=nombre_cliente,
+                telefono=telefono_cliente,
+                direccion=direccion_cliente
+            )
+
             # Crear el pedido
-            order = Order.objects.create(
-                customer_name=customer_name,
-                customer_phone=customer_phone,
-                customer_address=customer_address,
-                total_price=0
+            pedido = Pedido.objects.create(
+                cliente=cliente,
+                precio_total=0
             )
 
             # Añadir ítems y calcular total
-            total_price = 0
+            precio_total = 0
             for item in items:
-                dish = Dish.objects.get(id=item['dish_id'])
-                quantity = item['quantity']
-                OrderItem.objects.create(
-                    order=order,
-                    dish=dish,
-                    quantity=quantity
+                plato = Plato.objects.get(id=item['plato_id'])
+                cantidad = item['cantidad']
+                ItemPedido.objects.create(
+                    pedido=pedido,
+                    plato=plato,
+                    cantidad=cantidad
                 )
-                total_price += dish.price * quantity
+                precio_total += plato.precio * cantidad
 
-            order.total_price = total_price
-            order.save()
+            pedido.precio_total = precio_total
+            pedido.save()
 
-            return JsonResponse({'message': 'Pedido creado', 'order_id': order.id})
-        except Dish.DoesNotExist:
+            return JsonResponse({'mensaje': 'Pedido creado', 'pedido_id': pedido.id})
+        except Plato.DoesNotExist:
             return JsonResponse({'error': 'Plato no encontrado'}, status=404)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
     else:
         return JsonResponse({'error': 'Método no permitido'}, status=405)
 
-# API para obtener un pedido específico por ID (con autenticación JWT)
+# API para obtener un pedido específico por ID (sin autenticación)
 @api_view(['GET'])
-def order_detail(request, order_id):
+def detalle_pedido(request, pedido_id):
     try:
-        order = Order.objects.get(id=order_id)
-        items = OrderItem.objects.filter(order=order).select_related('dish')
+        pedido = Pedido.objects.get(id=pedido_id)
+        items = ItemPedido.objects.filter(pedido=pedido).select_related('plato')
         items_data = [{
-            'dish_id': item.dish.id,
-            'dish_name': item.dish.name,
-            'quantity': item.quantity,
-            'price': str(item.dish.price)
+            'plato_id': item.plato.id,
+            'plato_nombre': item.plato.nombre,
+            'cantidad': item.cantidad,
+            'precio': str(item.plato.precio)
         } for item in items]
         data = {
-            'order_id': order.id,
-            'customer_name': order.customer_name,
-            'customer_phone': order.customer_phone,
-            'customer_address': order.customer_address,
-            'status': order.status,
-            'created_at': order.created_at.isoformat(),
-            'total_price': str(order.total_price),
+            'pedido_id': pedido.id,
+            'nombre_cliente': pedido.cliente.nombre,
+            'telefono_cliente': pedido.cliente.telefono,
+            'direccion_cliente': pedido.cliente.direccion,
+            'estado': pedido.estado,
+            'creado_en': pedido.creado_en.isoformat(),
+            'precio_total': str(pedido.precio_total),
             'items': items_data
         }
         return JsonResponse(data)
-    except Order.DoesNotExist:
+    except Pedido.DoesNotExist:
         return JsonResponse({'error': 'Pedido no encontrado'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
-# API para actualizar estado de pedidos (sin autenticación JWT)
+# API para actualizar estado de pedidos (con autenticación JWT)
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
 @csrf_exempt
-def update_order_status_view(request, order_id):
+def actualizar_estado_pedido(request, pedido_id):
     try:
-        order = Order.objects.get(id=order_id)
+        pedido = Pedido.objects.get(id=pedido_id)
         data = json.loads(request.body)
-        status = data.get('status')
-        if status not in ['pending', 'attended']:
+        estado = data.get('estado')
+        if estado not in ['pendiente', 'atendido']:
             return JsonResponse({'error': 'Estado inválido'}, status=400)
-        order.status = status
-        order.save()
-        return JsonResponse({'message': 'Estado actualizado'})
-    except Order.DoesNotExist:
+        pedido.estado = estado
+        pedido.save()
+        return JsonResponse({'mensaje': 'Estado actualizado'})
+    except Pedido.DoesNotExist:
         return JsonResponse({'error': 'Pedido no encontrado'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
