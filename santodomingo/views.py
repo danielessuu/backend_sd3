@@ -65,6 +65,13 @@ def create_order(request):
             return JsonResponse({'error': str(e)}, status=500)
     return JsonResponse({'error': 'Solo se permite POST'}, status=405)
 
+def orders_list(request):
+    if request.method == "GET":
+        orders = Order.objects.all().values(
+            'id', 'customer_name', 'customer_phone', 'customer_address', 'status', 'created_at'
+        )
+        return JsonResponse(list(orders), safe=False)
+        
 # Vista para listar pedidos (con autenticación, para staff)
 @login_required
 def order_list_view(request):
