@@ -62,10 +62,10 @@ def create_order(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
-# API para listar pedidos con ítems (con autenticación JWT)
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def orders_with_items(request):
+# API para listar y crear pedidos (sin autenticación)
+@csrf_exempt
+@api_view(['GET', 'POST'])
+def orders(request):
     if request.method == 'GET':
         orders = Order.objects.all().order_by('-id')
         status = request.GET.get('status')
@@ -95,9 +95,78 @@ def orders_with_items(request):
                 'items': items_data
             })
         return JsonResponse(data, safe=False)
-    return JsonResponse({'error': 'Método no permitido'}, status=405)
 
-# API para actualizar estado de pedidos (con autenticación JWT)
+    elif request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            customer_name = data.get('customer_name')
+            customer_phone = data.get('customer_phone')
+            customer_address = data.get('customer_address')
+            items = data.get('items')  # Lista de {'dish_id': id, 'quantity': qty}
+
+            if not all([customer_name, customer_phone, customer_address, items]):
+                return JsonResponse({'error': 'Faltan campos requeridos'}, status=400)
+
+            # Crear el pedido
+            order = Order.objects.create(
+                customer_name=customer_name,
+                customer_phone=customer_phone,
+                customer_address=customer_address,
+                total_price=0
+            )
+
+            # Añadir ítems y calcular total
+            total_price = 0
+            for item in items:
+                dish = Dish.objects.get(id=item['dish_id'])
+                quantity = item['quantity']
+                OrderItem.objects.create(
+                    order=order,
+                    dish=dish,
+                    quantity=quantity
+                )
+                total_price += dish.price * quantity
+
+            order.total_price = total_price
+            order.save()
+
+            return JsonResponse({'message': 'Pedido creado', 'order_id': order.id})
+        except Dish.DoesNotExist:
+            return JsonResponse({'error': 'Plato no encontrado'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+# API para obtener un pedido específico por ID (con autenticación JWT)
+@api_view(['GET'])
+def order_detail(request, order_id):
+    try:
+        order = Order.objects.get(id=order_id)
+        items = OrderItem.objects.filter(order=order).select_related('dish')
+        items_data = [{
+            'dish_id': item.dish.id,
+            'dish_name': item.dish.name,
+            'quantity': item.quantity,
+            'price': str(item.dish.price)
+        } for item in items]
+        data = {
+            'order_id': order.id,
+            'customer_name': order.customer_name,
+            'customer_phone': order.customer_phone,
+            'customer_address': order.customer_address,
+            'status': order.status,
+            'created_at': order.created_at.isoformat(),
+            'total_price': str(order.total_price),
+            'items': items_data
+        }
+        return JsonResponse(data)
+    except Order.DoesNotExist:
+        return JsonResponse({'error': 'Pedido no encontrado'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+# API para actualizar estado de pedidos (sin autenticación JWT)
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
 @csrf_exempt
